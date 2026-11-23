@@ -2,8 +2,8 @@
 
 # Traz as classes No, ListaEncadeada e Fila do arquivo estruturas.py.
 from estruturas import No, ListaEncadeada, Fila
-# Traz o controle de atendimento do arquivo clinica.py.
-from clinica import ControleAtendimento
+# Traz o controle de atendimento e o cadastro de tutores do arquivo clinica.py.
+from clinica import ControleAtendimento, CadastroTutores
 
 
 # Função que testa o Módulo 1 (classe No).
@@ -135,6 +135,40 @@ def teste_modulo_4():
     clinica.exibir_situacao()
 
 
+# Função que testa o Módulo 5 (tutores e animais, Lista + Lista).
+def teste_modulo_5():
+    # Mostra o título do teste.
+    print("Teste do Módulo 5: tutores e animais")
+    # Cria o cadastro vazio.
+    cadastro = CadastroTutores()
+    # Cadastra dois tutores.
+    cadastro.cadastrar_tutor("Ana", "111.111.111-11", "(19) 99999-1111")
+    cadastro.cadastrar_tutor("Carlos", "222.222.222-22", "(19) 99999-2222")
+    # Tenta cadastrar de novo o mesmo CPF: deve ser recusado.
+    cadastro.cadastrar_tutor("Ana Maria", "111.111.111-11", "(19) 98888-0000")
+    # Ana cadastra dois animais.
+    cadastro.cadastrar_animal("111.111.111-11", "Rex", "cão", "labrador", 5)
+    cadastro.cadastrar_animal("111.111.111-11", "Mia", "gato", "siamês", 3)
+    # Carlos cadastra um animal.
+    cadastro.cadastrar_animal("222.222.222-22", "Thor", "cão", "vira-lata", 8)
+    # Tempo depois, Ana traz um terceiro animal: não há limite.
+    cadastro.cadastrar_animal("111.111.111-11", "Nina", "coelho", "mini lop", 1)
+    # Mostra o cadastro completo.
+    cadastro.exibir()
+    # Busca o tutor pelo CPF.
+    print("Busca por CPF:", cadastro.buscar_por_cpf("222.222.222-22"))
+    # Busca um animal pelo nome junto com o CPF do tutor (deve achar Mia).
+    print("Busca Mia da Ana:", cadastro.buscar_animal("111.111.111-11", "Mia"))
+    # Busca Thor com o CPF da Ana: Thor é do Carlos, então não deve achar (None).
+    print("Busca Thor da Ana:", cadastro.buscar_animal("111.111.111-11", "Thor"))
+    # Remove a Mia da lista da Ana.
+    cadastro.remover_animal("111.111.111-11", "Mia")
+    # Remove o tutor Carlos (e o Thor sai junto).
+    cadastro.remover_tutor("222.222.222-22")
+    # Mostra o cadastro final.
+    cadastro.exibir()
+
+
 # Roda o teste do Módulo 1.
 teste_modulo_1()
 # Roda o teste do Módulo 2.
@@ -145,3 +179,5 @@ teste_remocao()
 teste_modulo_3()
 # Roda o teste do Módulo 4.
 teste_modulo_4()
+# Roda o teste do Módulo 5.
+teste_modulo_5()
