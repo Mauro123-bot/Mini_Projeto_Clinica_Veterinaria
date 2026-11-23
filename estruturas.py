@@ -1,4 +1,3 @@
-# Este arquivo guarda as estruturas de dados genéricas da Clínica Veterinária.
 # Este arquivo guarda as estruturas de dados genéricas do projeto.
 # Elas não sabem nada sobre a clínica e podem ser usadas em qualquer sistema.
 
@@ -62,3 +61,36 @@ class ListaEncadeada:
             print(atual.dado)
             # Avança para o próximo nó seguindo o ponteiro.
             atual = atual.proximo
+
+    # Método que remove da lista o primeiro nó que contém o dado informado.
+    def remover(self, dado):
+        # Guarda o nó que vem antes do atual; no início não há nenhum.
+        anterior = None
+        # Começa a busca pelo primeiro nó da lista.
+        atual = self.cabeca
+        # Repete enquanto ainda houver nó para visitar.
+        while atual is not None:
+            # Verifica se o nó atual contém o dado procurado.
+            if atual.dado == dado:
+                # Se não há anterior, o nó a remover é o primeiro da lista...
+                if anterior is None:
+                    # ...então a cabeça passa a ser o segundo nó.
+                    self.cabeca = atual.proximo
+                # Se há anterior, o nó a remover está no meio ou no fim...
+                else:
+                    # ...então o anterior "pula" o atual e aponta para o seguinte.
+                    anterior.proximo = atual.proximo
+                # Verifica se o nó removido era o último da lista.
+                if atual is self.cauda:
+                    # Se era, a cauda passa a ser o nó anterior.
+                    self.cauda = anterior
+                # Diminui em 1 o contador de nós.
+                self.tamanho -= 1
+                # Avisa que a remoção deu certo.
+                return True
+            # Antes de avançar, o atual vira o anterior.
+            anterior = atual
+            # Avança para o próximo nó seguindo o ponteiro.
+            atual = atual.proximo
+        # Se percorreu tudo e não achou, avisa que nada foi removido.
+        return False
