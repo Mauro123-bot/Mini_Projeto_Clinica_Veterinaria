@@ -1,7 +1,7 @@
 # Este arquivo roda os testes de cada módulo do projeto.
 
-# Traz as classes No e ListaEncadeada do arquivo estruturas.py.
-from estruturas import No, ListaEncadeada
+# Traz as classes No, ListaEncadeada e Fila do arquivo estruturas.py.
+from estruturas import No, ListaEncadeada, Fila
 
 
 # Função que testa o Módulo 1 (classe No).
@@ -73,9 +73,45 @@ def teste_remocao():
     print("Tamanho:", lista.tamanho)
 
 
+# Função que testa o Módulo 3 (fila).
+def teste_modulo_3():
+    # Mostra o título do teste.
+    print("Teste do Módulo 3: fila")
+    # Cria uma fila vazia.
+    fila = Fila()
+    # Espia a fila vazia: deve mostrar None, sem dar erro.
+    print("Primeiro da fila vazia:", fila.espiar())
+    # Tenta tirar alguém da fila vazia: deve mostrar None, sem dar erro.
+    print("Saiu da fila vazia:", fila.desenfileirar())
+    # Três animais chegam, nesta ordem.
+    fila.enfileirar("Rex")
+    fila.enfileirar("Mia")
+    fila.enfileirar("Thor")
+    # Mostra a fila inteira, do primeiro ao último.
+    fila.exibir()
+    # Espia o primeiro sem tirá-lo (deve ser Rex).
+    print("Primeiro da fila:", fila.espiar())
+    # Tira o primeiro: sai Rex, que chegou antes.
+    print("Saiu:", fila.desenfileirar())
+    # Tira o próximo: sai Mia.
+    print("Saiu:", fila.desenfileirar())
+    # Mostra quantos ainda esperam (deve ser 1).
+    print("Tamanho:", fila.tamanho)
+    # Tira o último: sai Thor.
+    print("Saiu:", fila.desenfileirar())
+    # Confere que a fila ficou vazia (deve mostrar True).
+    print("Vazia?", fila.esta_vazia())
+    # Um novo animal chega, para conferir que a fila funciona depois de esvaziar.
+    fila.enfileirar("Luna")
+    # Espia o primeiro (deve ser Luna).
+    print("Primeiro da fila:", fila.espiar())
+
+
 # Roda o teste do Módulo 1.
 teste_modulo_1()
 # Roda o teste do Módulo 2.
 teste_modulo_2()
 # Roda o teste de remoção.
 teste_remocao()
+# Roda o teste do Módulo 3.
+teste_modulo_3()

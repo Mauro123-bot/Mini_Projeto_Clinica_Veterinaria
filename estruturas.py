@@ -94,3 +94,80 @@ class ListaEncadeada:
             atual = atual.proximo
         # Se percorreu tudo e não achou, avisa que nada foi removido.
         return False
+
+
+# ==================== MÓDULO 3: FILA ====================
+
+# Cria a classe Fila: o primeiro a entrar é o primeiro a sair (FIFO).
+class Fila:
+    # Construtor: cria uma fila nova, ainda vazia.
+    def __init__(self):
+        # Ponteiro para o primeiro da fila (o próximo a ser atendido).
+        self.inicio = None
+        # Ponteiro para o último da fila (onde os novos entram).
+        self.fim = None
+        # Contador de quantos itens estão na fila.
+        self.tamanho = 0
+
+    # Método que responde se a fila está vazia.
+    def esta_vazia(self):
+        # Devolve True se não houver ninguém no início da fila.
+        return self.inicio is None
+
+    # Método que coloca um novo item no fim da fila. Custo O(1).
+    def enfileirar(self, dado):
+        # Cria um nó novo contendo o dado recebido.
+        novo = No(dado)
+        # Verifica se a fila está vazia.
+        if self.esta_vazia():
+            # Se estiver vazia, o novo nó é ao mesmo tempo o início...
+            self.inicio = novo
+            # ...e o fim da fila.
+            self.fim = novo
+        # Caso a fila já tenha itens.
+        else:
+            # O último da fila passa a apontar para o novo nó.
+            self.fim.proximo = novo
+            # O novo nó passa a ser o último da fila.
+            self.fim = novo
+        # Aumenta em 1 o contador da fila.
+        self.tamanho += 1
+
+    # Método que tira e devolve o primeiro item da fila. Custo O(1).
+    def desenfileirar(self):
+        # Se a fila estiver vazia, não há quem tirar.
+        if self.esta_vazia():
+            # Devolve None para indicar que não havia ninguém.
+            return None
+        # Guarda o nó que está no início da fila.
+        primeiro = self.inicio
+        # O início passa a ser o segundo da fila.
+        self.inicio = primeiro.proximo
+        # Se a fila ficou vazia depois da saída...
+        if self.inicio is None:
+            # ...o fim também deixa de apontar para alguém.
+            self.fim = None
+        # Diminui em 1 o contador da fila.
+        self.tamanho -= 1
+        # Devolve o dado de quem saiu da fila.
+        return primeiro.dado
+
+    # Método que mostra quem é o primeiro da fila, sem tirá-lo. Custo O(1).
+    def espiar(self):
+        # Se a fila estiver vazia, não há ninguém para mostrar.
+        if self.esta_vazia():
+            # Devolve None para indicar que a fila está vazia.
+            return None
+        # Devolve o dado do primeiro da fila, que continua no lugar.
+        return self.inicio.dado
+
+    # Método que mostra na tela todos os itens da fila, do início ao fim.
+    def exibir(self):
+        # Começa pelo primeiro da fila.
+        atual = self.inicio
+        # Repete enquanto ainda houver item para visitar.
+        while atual is not None:
+            # Mostra o dado do item atual.
+            print(atual.dado)
+            # Avança para o próximo item seguindo o ponteiro.
+            atual = atual.proximo
