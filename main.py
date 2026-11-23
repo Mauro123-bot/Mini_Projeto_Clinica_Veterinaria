@@ -2,6 +2,8 @@
 
 # Traz as classes No, ListaEncadeada e Fila do arquivo estruturas.py.
 from estruturas import No, ListaEncadeada, Fila
+# Traz o controle de atendimento do arquivo clinica.py.
+from clinica import ControleAtendimento
 
 
 # Função que testa o Módulo 1 (classe No).
@@ -107,6 +109,32 @@ def teste_modulo_3():
     print("Primeiro da fila:", fila.espiar())
 
 
+# Função que testa o Módulo 4 (atendimento com Fila + Fila).
+def teste_modulo_4():
+    # Mostra o título do teste.
+    print("Teste do Módulo 4: controle de atendimento")
+    # Cria uma clínica com 2 consultórios.
+    clinica = ControleAtendimento(2)
+    # Chegam três casos normais, nesta ordem.
+    clinica.registrar_chegada("Rex", "Ana", "vômito")
+    clinica.registrar_chegada("Mia", "Carlos", "falta de apetite")
+    clinica.registrar_chegada("Thor", "Beatriz", "ferimento na pata")
+    # Depois chegam duas emergências.
+    clinica.registrar_chegada("Bob", "Daniel", "atropelamento", emergencia=True)
+    clinica.registrar_chegada("Luna", "Eva", "intoxicação", emergencia=True)
+    # Mostra quem é o próximo: deve ser Bob, a primeira emergência.
+    print("Próximo da vez:", clinica.proximo_da_vez().nome_animal)
+    # Chama dois animais: devem ser Bob e Luna, as emergências, na ordem de chegada.
+    clinica.chamar_proximo()
+    clinica.chamar_proximo()
+    # Tenta chamar um terceiro: os 2 consultórios estão ocupados.
+    clinica.chamar_proximo()
+    # Bob é liberado: o sistema chama automaticamente Rex, o primeiro da fila normal.
+    clinica.liberar_consultorio("Bob")
+    # Mostra a situação final das filas e dos consultórios.
+    clinica.exibir_situacao()
+
+
 # Roda o teste do Módulo 1.
 teste_modulo_1()
 # Roda o teste do Módulo 2.
@@ -115,3 +143,5 @@ teste_modulo_2()
 teste_remocao()
 # Roda o teste do Módulo 3.
 teste_modulo_3()
+# Roda o teste do Módulo 4.
+teste_modulo_4()
