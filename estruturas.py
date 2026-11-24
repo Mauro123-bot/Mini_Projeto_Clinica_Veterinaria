@@ -171,3 +171,40 @@ class Fila:
             print(atual.dado)
             # Avança para o próximo item seguindo o ponteiro.
             atual = atual.proximo
+
+
+# ==================== MÓDULO 6: NÓ DE ÁRVORE N-ÁRIA ====================
+
+# Cria a classe NoArvore: um nó de árvore que pode ter de zero a N filhos.
+# A árvore não é binária nem de busca. Os filhos de cada nó formam uma
+# lista encadeada, ligada pelos ponteiros primeiro_filho e proximo_irmao.
+class NoArvore:
+    # Construtor: roda quando um nó de árvore novo é criado.
+    def __init__(self, dado):
+        # Guarda dentro do nó a informação recebida.
+        self.dado = dado
+        # Ponteiro para o primeiro filho deste nó; começa sem filhos.
+        self.primeiro_filho = None
+        # Ponteiro para o próximo irmão (o filho seguinte do mesmo pai).
+        self.proximo_irmao = None
+
+    # Método que acrescenta um filho no fim da lista de filhos deste nó.
+    def adicionar_filho(self, dado):
+        # Cria o nó do novo filho.
+        novo = NoArvore(dado)
+        # Se este nó ainda não tem filhos...
+        if self.primeiro_filho is None:
+            # ...o novo nó passa a ser o primeiro filho.
+            self.primeiro_filho = novo
+        # Se já tem filhos...
+        else:
+            # ...começa pelo primeiro filho...
+            atual = self.primeiro_filho
+            # ...e anda pelos irmãos até chegar ao último.
+            while atual.proximo_irmao is not None:
+                # Avança para o próximo irmão.
+                atual = atual.proximo_irmao
+            # O último irmão passa a apontar para o novo filho.
+            atual.proximo_irmao = novo
+        # Devolve o novo nó, para que ele também possa receber filhos.
+        return novo

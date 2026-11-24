@@ -2,8 +2,8 @@
 
 # Traz as classes No, ListaEncadeada e Fila do arquivo estruturas.py.
 from estruturas import No, ListaEncadeada, Fila
-# Traz o controle de atendimento e o cadastro de tutores do arquivo clinica.py.
-from clinica import ControleAtendimento, CadastroTutores
+# Traz as classes e funções da clínica do arquivo clinica.py.
+from clinica import ControleAtendimento, CadastroTutores, criar_arvore_sistemas
 
 
 # Função que testa o Módulo 1 (classe No).
@@ -169,6 +169,27 @@ def teste_modulo_5():
     cadastro.exibir()
 
 
+# Função que testa o Módulo 6 (árvore de sistemas do animal).
+def teste_modulo_6():
+    # Mostra o título do teste.
+    print("Teste do Módulo 6: árvore de sistemas do animal")
+    # Monta a árvore pré-definida.
+    arvore = criar_arvore_sistemas()
+    # Exibe a árvore indentada, com tudo Saudável.
+    arvore.exibir()
+    # O veterinário marca o estômago como alterado, pelo nome.
+    arvore.marcar_alterado("Estômago")
+    # Marca a gengiva como alterada, pelo código.
+    arvore.marcar_alterado("DG02")
+    # Tenta marcar um item que não existe na árvore.
+    arvore.marcar_alterado("Fígado")
+    # Exibe a árvore de novo, já com os itens alterados.
+    arvore.exibir()
+    # Mostra a lista dos itens alterados, que irá para o prontuário.
+    print("Itens alterados:")
+    arvore.itens_alterados().exibir()
+
+
 # Roda o teste do Módulo 1.
 teste_modulo_1()
 # Roda o teste do Módulo 2.
@@ -181,3 +202,5 @@ teste_modulo_3()
 teste_modulo_4()
 # Roda o teste do Módulo 5.
 teste_modulo_5()
+# Roda o teste do Módulo 6.
+teste_modulo_6()

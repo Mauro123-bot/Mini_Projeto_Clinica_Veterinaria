@@ -1,8 +1,8 @@
 # Este arquivo guarda as regras da Clínica Veterinária.
 # Ele usa as estruturas genéricas do arquivo estruturas.py, mas não as modifica.
 
-# Traz a lista encadeada e a fila que criamos nos módulos anteriores.
-from estruturas import ListaEncadeada, Fila
+# Traz a lista encadeada, a fila e o nó de árvore criados no estruturas.py.
+from estruturas import ListaEncadeada, Fila, NoArvore
 # Traz a biblioteca de datas do Python, usada só para registrar data e hora.
 from datetime import datetime
 
@@ -320,3 +320,157 @@ class CadastroTutores:
                 atual_animal = atual_animal.proximo
             # Avança para o próximo tutor.
             atual_tutor = atual_tutor.proximo
+
+
+# ==================== MÓDULO 6: ÁRVORE DE SISTEMAS DO ANIMAL ====================
+
+# Cria a classe ItemSistema: os dados de um sistema, órgão ou estrutura do animal.
+class ItemSistema:
+    # Construtor: recebe o nome e, se for um item final, o código.
+    def __init__(self, nome, codigo=None):
+        # Guarda o nome (ex.: Sistema digestório, Estômago).
+        self.nome = nome
+        # Guarda o código de identificação; só os itens finais têm código.
+        self.codigo = codigo
+        # Todo item começa no estado Saudável.
+        self.estado = "Saudável"
+
+    # Define como o item aparece quando é mostrado com print.
+    def __str__(self):
+        # Se o item tem código, mostra o código junto ao nome.
+        if self.codigo is not None:
+            # Ex.: Estômago (DG01) [Saudável]
+            return f"{self.nome} ({self.codigo}) [{self.estado}]"
+        # Se não tem código, mostra só o nome e o estado.
+        return f"{self.nome} [{self.estado}]"
+
+
+# Cria a classe ArvoreSistemas: a hierarquia de sistemas usada no diagnóstico.
+class ArvoreSistemas:
+    # Construtor: cria a árvore com a raiz recebida.
+    def __init__(self, nome_raiz):
+        # A raiz é o nó do topo da árvore (o animal inteiro).
+        self.raiz = NoArvore(ItemSistema(nome_raiz))
+
+    # Método que exibe a árvore indentada, em percurso de profundidade (pré-ordem).
+    def exibir(self):
+        # Começa o percurso pela raiz, no nível 0 (sem recuo).
+        self._exibir_pre_ordem(self.raiz, 0)
+
+    # Método auxiliar recursivo do percurso em pré-ordem.
+    def _exibir_pre_ordem(self, no, nivel):
+        # PRÉ-ORDEM, passo 1: visita o próprio nó, com recuo conforme o nível.
+        print("    " * nivel + "- " + str(no.dado))
+        # PRÉ-ORDEM, passo 2: depois visita cada filho, do primeiro ao último.
+        filho = no.primeiro_filho
+        # Percorre a lista de filhos pelos ponteiros de irmão.
+        while filho is not None:
+            # Visita o filho (e todos os descendentes dele) um nível abaixo.
+            self._exibir_pre_ordem(filho, nivel + 1)
+            # Passa para o próximo irmão.
+            filho = filho.proximo_irmao
+
+    # Método que procura um item pelo nome ou pelo código.
+    def buscar(self, nome_ou_codigo):
+        # Começa a busca pela raiz.
+        return self._buscar_em(self.raiz, nome_ou_codigo)
+
+    # Método auxiliar recursivo da busca, também em pré-ordem.
+    def _buscar_em(self, no, nome_ou_codigo):
+        # Verifica se o nó atual é o procurado, pelo nome ou pelo código.
+        if no.dado.nome == nome_ou_codigo or no.dado.codigo == nome_ou_codigo:
+            # Devolve o nó encontrado.
+            return no
+        # Se não for, procura em cada filho.
+        filho = no.primeiro_filho
+        # Percorre a lista de filhos.
+        while filho is not None:
+            # Procura dentro deste filho e dos descendentes dele.
+            encontrado = self._buscar_em(filho, nome_ou_codigo)
+            # Se encontrou em algum descendente...
+            if encontrado is not None:
+                # ...devolve o resultado e para a busca.
+                return encontrado
+            # Passa para o próximo irmão.
+            filho = filho.proximo_irmao
+        # Se não encontrou neste ramo, devolve None.
+        return None
+
+    # Método que marca um item como Alterado durante o diagnóstico.
+    def marcar_alterado(self, nome_ou_codigo):
+        # Procura o item na árvore.
+        no = self.buscar(nome_ou_codigo)
+        # Se não encontrou...
+        if no is None:
+            # ...avisa e não marca nada.
+            print(f"Item {nome_ou_codigo} não encontrado na árvore.")
+            # Devolve False, pois nada foi marcado.
+            return False
+        # Muda o estado do item para Alterado.
+        no.dado.estado = "Alterado"
+        # Mostra na tela qual item foi marcado.
+        print(f"Marcado como Alterado: {no.dado.nome}")
+        # Devolve True, pois a marcação deu certo.
+        return True
+
+    # Método que devolve uma lista com todos os itens marcados como Alterado.
+    def itens_alterados(self):
+        # Cria a lista encadeada que vai receber os itens alterados.
+        resultado = ListaEncadeada()
+        # Percorre a árvore a partir da raiz, preenchendo a lista.
+        self._coletar_alterados(self.raiz, resultado)
+        # Devolve a lista; ela será usada no prontuário.
+        return resultado
+
+    # Método auxiliar recursivo que junta os itens alterados, em pré-ordem.
+    def _coletar_alterados(self, no, resultado):
+        # Se o item do nó atual está alterado...
+        if no.dado.estado == "Alterado":
+            # ...coloca o item na lista de resultado.
+            resultado.inserir_fim(no.dado)
+        # Depois visita cada filho.
+        filho = no.primeiro_filho
+        # Percorre a lista de filhos.
+        while filho is not None:
+            # Junta os alterados deste filho e dos descendentes dele.
+            self._coletar_alterados(filho, resultado)
+            # Passa para o próximo irmão.
+            filho = filho.proximo_irmao
+
+
+# Função que monta a árvore pré-definida de sistemas do animal.
+def criar_arvore_sistemas():
+    # Cria a árvore com a raiz "Animal".
+    arvore = ArvoreSistemas("Animal")
+    # Guarda a raiz para pendurar os sistemas nela.
+    animal = arvore.raiz
+
+    # Acrescenta o sistema digestório como filho da raiz.
+    digestorio = animal.adicionar_filho(ItemSistema("Sistema digestório"))
+    # Acrescenta a boca, que por sua vez tem partes menores.
+    boca = digestorio.adicionar_filho(ItemSistema("Boca"))
+    # Partes da boca: itens finais, com código.
+    boca.adicionar_filho(ItemSistema("Dentes", "DG01"))
+    boca.adicionar_filho(ItemSistema("Gengiva", "DG02"))
+    # Demais órgãos do sistema digestório.
+    digestorio.adicionar_filho(ItemSistema("Estômago", "DG03"))
+    digestorio.adicionar_filho(ItemSistema("Intestino", "DG04"))
+
+    # Acrescenta o sistema respiratório e seus órgãos.
+    respiratorio = animal.adicionar_filho(ItemSistema("Sistema respiratório"))
+    respiratorio.adicionar_filho(ItemSistema("Pulmões", "RS01"))
+    respiratorio.adicionar_filho(ItemSistema("Traqueia", "RS02"))
+
+    # Acrescenta a pele e suas estruturas.
+    pele = animal.adicionar_filho(ItemSistema("Pele"))
+    pele.adicionar_filho(ItemSistema("Pelos", "PL01"))
+    pele.adicionar_filho(ItemSistema("Unhas", "PL02"))
+
+    # Acrescenta o sistema locomotor e suas estruturas.
+    locomotor = animal.adicionar_filho(ItemSistema("Sistema locomotor"))
+    locomotor.adicionar_filho(ItemSistema("Patas dianteiras", "LC01"))
+    locomotor.adicionar_filho(ItemSistema("Patas traseiras", "LC02"))
+    locomotor.adicionar_filho(ItemSistema("Coluna", "LC03"))
+
+    # Devolve a árvore pronta.
+    return arvore
