@@ -3,7 +3,9 @@
 # Traz as classes No, ListaEncadeada e Fila do arquivo estruturas.py.
 from estruturas import No, ListaEncadeada, Fila
 # Traz as classes e funções da clínica do arquivo clinica.py.
-from clinica import ControleAtendimento, CadastroTutores, criar_arvore_sistemas
+from clinica import ControleAtendimento, CadastroTutores, criar_arvore_sistemas, Estoque
+# Traz o tipo de data do Python, para montar as datas dos lotes.
+from datetime import date
 
 
 # Função que testa o Módulo 1 (classe No).
@@ -190,6 +192,48 @@ def teste_modulo_6():
     arvore.itens_alterados().exibir()
 
 
+# Função que testa o Módulo 7 (estoque: Lista de produtos + Fila de lotes).
+def teste_modulo_7():
+    # Mostra o título do teste.
+    print("Teste do Módulo 7: estoque de medicamentos e vacinas")
+    # Fixa a data de hoje do teste, para o resultado ser sempre o mesmo.
+    hoje = date(2026, 11, 24)
+    # Cria o estoque vazio.
+    estoque = Estoque()
+    # Cadastra três produtos, cada um com o seu mínimo e o seu destino de descarte.
+    estoque.cadastrar_produto("AMX", "Amoxicilina 250 mg", 20,
+                              "resíduo químico (grupo B), recolhido por empresa licenciada")
+    estoque.cadastrar_produto("VAR", "Vacina antirrábica", 10,
+                              "resíduo biológico (grupo A), tratamento antes do descarte")
+    estoque.cadastrar_produto("SER", "Seringa com agulha", 50,
+                              "perfurocortante (grupo E), caixa rígida própria")
+    # Entram três lotes de amoxicilina, comprados em datas e preços diferentes.
+    estoque.entrada_lote("AMX", "VetFarma", 1.50, 3.00, date(2026, 6, 1), date(2026, 11, 1), 10)
+    estoque.entrada_lote("AMX", "VetFarma", 1.60, 3.20, date(2026, 8, 1), date(2027, 8, 1), 30)
+    estoque.entrada_lote("AMX", "PetMed", 1.40, 3.00, date(2026, 10, 1), date(2027, 10, 1), 20)
+    # Entra um lote de vacina que vence em breve.
+    estoque.entrada_lote("VAR", "BioVet", 25.00, 60.00, date(2026, 9, 10), date(2026, 12, 10), 15)
+    # Entra um lote de seringas.
+    estoque.entrada_lote("SER", "MedSul", 0.50, 1.50, date(2026, 10, 15), date(2029, 10, 15), 100)
+    # Mostra o estoque inicial.
+    estoque.exibir()
+    # Avisa os lotes que vencem nos próximos 30 dias (a vacina).
+    estoque.alerta_vencimento_proximo(30, hoje)
+    # Descarta os vencidos: o primeiro lote de amoxicilina venceu em 01/11.
+    estoque.descartar_vencidos(hoje)
+    # Retira 35 amoxicilinas: consome o lote de agosto (30) e 5 do lote de outubro.
+    estoque.retirar("AMX", 35, hoje)
+    # Tenta retirar mais do que existe: deve ser recusado.
+    estoque.retirar("AMX", 100, hoje)
+    # Ajuste de inventário: a contagem física achou só 8 vacinas.
+    estoque.ajustar_quantidade("VAR", 8)
+    # Mostra o estoque final.
+    estoque.exibir()
+    # Mostra as perdas registradas.
+    print("Perdas registradas:")
+    estoque.perdas.exibir()
+
+
 # Roda o teste do Módulo 1.
 teste_modulo_1()
 # Roda o teste do Módulo 2.
@@ -204,3 +248,5 @@ teste_modulo_4()
 teste_modulo_5()
 # Roda o teste do Módulo 6.
 teste_modulo_6()
+# Roda o teste do Módulo 7.
+teste_modulo_7()
