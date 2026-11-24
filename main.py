@@ -4,7 +4,9 @@
 from estruturas import No, ListaEncadeada, Fila, Pilha
 # Traz as classes e funções da clínica do arquivo clinica.py.
 from clinica import ControleAtendimento, CadastroTutores, criar_arvore_sistemas, Estoque
-from clinica import Atendimento, ControleProntuarios, Caixa
+from clinica import Atendimento, ControleProntuarios, Caixa, simular_atendimento_completo
+# Traz o módulo sys, usado só para ler a opção digitada ao rodar o programa.
+import sys
 # Traz o tipo de data do Python, para montar as datas dos lotes.
 from datetime import date
 
@@ -335,23 +337,31 @@ def teste_modulos_9_e_10():
     print(f"Total recebido no caixa: R$ {caixa.total_recebido():.2f}")
 
 
-# Roda o teste do Módulo 1.
-teste_modulo_1()
-# Roda o teste do Módulo 2.
-teste_modulo_2()
-# Roda o teste de remoção.
-teste_remocao()
-# Roda o teste do Módulo 3.
-teste_modulo_3()
-# Roda o teste do Módulo 4.
-teste_modulo_4()
-# Roda o teste do Módulo 5.
-teste_modulo_5()
-# Roda o teste do Módulo 6.
-teste_modulo_6()
-# Roda o teste do Módulo 7.
-teste_modulo_7()
-# Roda o teste do Módulo 8.
-teste_modulo_8()
-# Roda o teste dos Módulos 9 e 10.
-teste_modulos_9_e_10()
+# Se o programa for rodado com a palavra "simulacao", mostra só a simulação completa.
+if len(sys.argv) > 1 and sys.argv[1] == "simulacao":
+    # Roda a simulação do atendimento completo (Módulo 11).
+    simular_atendimento_completo()
+# Se for rodado sem nada, roda todos os testes e, no fim, a simulação.
+else:
+    # Roda o teste do Módulo 1.
+    teste_modulo_1()
+    # Roda o teste do Módulo 2.
+    teste_modulo_2()
+    # Roda o teste de remoção.
+    teste_remocao()
+    # Roda o teste do Módulo 3.
+    teste_modulo_3()
+    # Roda o teste do Módulo 4.
+    teste_modulo_4()
+    # Roda o teste do Módulo 5.
+    teste_modulo_5()
+    # Roda o teste do Módulo 6.
+    teste_modulo_6()
+    # Roda o teste do Módulo 7.
+    teste_modulo_7()
+    # Roda o teste do Módulo 8.
+    teste_modulo_8()
+    # Roda o teste dos Módulos 9 e 10.
+    teste_modulos_9_e_10()
+    # Roda a simulação do atendimento completo (Módulo 11).
+    simular_atendimento_completo()

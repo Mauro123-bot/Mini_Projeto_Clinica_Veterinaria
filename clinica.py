@@ -1306,3 +1306,142 @@ class Caixa:
             atual = atual.proximo
         # Devolve a soma.
         return total
+
+
+# ==================== MÓDULO 11: SIMULAÇÃO DO ATENDIMENTO COMPLETO ====================
+
+# Função auxiliar que mostra um título de passo, para a simulação ficar fácil de ler.
+def titulo(texto):
+    # Mostra uma linha em branco, o título e uma linha de separação.
+    print()
+    print(texto)
+    print("-" * len(texto))
+
+
+# Função que simula um dia de atendimento na clínica, do começo ao fim.
+def simular_atendimento_completo():
+    # Guarda a data de hoje, usada no estoque.
+    hoje = date.today()
+
+    titulo("PREPARAÇÃO: cadastro, estoque e consultório")
+    # Cria o cadastro de tutores e animais (Lista + Lista).
+    cadastro = CadastroTutores()
+    cadastro.cadastrar_tutor("Ana", "111.111.111-11", "(19) 99999-1111")
+    cadastro.cadastrar_animal("111.111.111-11", "Rex", "cão", "labrador", 5)
+    cadastro.cadastrar_tutor("Carlos", "222.222.222-22", "(19) 99999-2222")
+    cadastro.cadastrar_animal("222.222.222-22", "Mia", "gato", "siamês", 3)
+    cadastro.cadastrar_tutor("Daniel", "333.333.333-33", "(19) 99999-3333")
+    cadastro.cadastrar_animal("333.333.333-33", "Bob", "cão", "vira-lata", 2)
+    # Cria o estoque (Lista de produtos + Fila de lotes).
+    estoque = Estoque()
+    estoque.cadastrar_produto("AMX", "Amoxicilina 250 mg", 20,
+                              "resíduo químico (grupo B), recolhido por empresa licenciada")
+    estoque.cadastrar_produto("VAR", "Vacina antirrábica", 10,
+                              "resíduo biológico (grupo A), tratamento antes do descarte")
+    estoque.cadastrar_produto("SER", "Seringa com agulha", 50,
+                              "perfurocortante (grupo E), caixa rígida própria")
+    estoque.cadastrar_produto("ATD", "Atadura", 10,
+                              "resíduo infectante após uso (grupo A)")
+    # Um lote de amoxicilina já vencido, para mostrar o descarte.
+    estoque.entrada_lote("AMX", "VetFarma", 1.50, 3.00, hoje - timedelta(days=200), hoje - timedelta(days=10), 10)
+    # Dois lotes válidos de amoxicilina, comprados em datas diferentes.
+    estoque.entrada_lote("AMX", "VetFarma", 1.60, 3.20, hoje - timedelta(days=100), hoje + timedelta(days=300), 30)
+    estoque.entrada_lote("AMX", "PetMed", 1.40, 3.00, hoje - timedelta(days=30), hoje + timedelta(days=400), 20)
+    # Demais produtos.
+    estoque.entrada_lote("VAR", "BioVet", 25.00, 60.00, hoje - timedelta(days=40), hoje + timedelta(days=20), 12)
+    estoque.entrada_lote("SER", "MedSul", 0.50, 1.50, hoje - timedelta(days=20), hoje + timedelta(days=1000), 100)
+    estoque.entrada_lote("ATD", "MedSul", 2.00, 5.00, hoje - timedelta(days=20), hoje + timedelta(days=700), 12)
+    # Avisa os lotes que vencem nos próximos 30 dias.
+    estoque.alerta_vencimento_proximo(30, hoje)
+    # A clínica abre com 1 consultório, para mostrar a espera.
+    atendimento = ControleAtendimento(1)
+    # Cria o controle de prontuários e o caixa.
+    prontuarios = ControleProntuarios()
+    caixa = Caixa(estoque, prontuarios)
+
+    titulo("PASSO 1: chegada dos animais e entrada na espera")
+    # Antes de entrar na fila, confere se o animal está cadastrado com o tutor.
+    print("Rex cadastrado?", cadastro.buscar_animal("111.111.111-11", "Rex") is not None)
+    # Rex chega com um caso normal.
+    atendimento.registrar_chegada("Rex", "Ana", "vômito")
+    # Mia chega para vacina, também caso normal.
+    atendimento.registrar_chegada("Mia", "Carlos", "vacina anual")
+    # Bob chega por último, mas é emergência.
+    atendimento.registrar_chegada("Bob", "Daniel", "atropelamento", emergencia=True)
+    # Mostra quem será o próximo: a emergência passa à frente.
+    print("Próximo da vez:", atendimento.proximo_da_vez().nome_animal)
+
+    titulo("PASSO 2: chamada para o consultório e abertura do prontuário")
+    # O consultório está livre: chama o próximo (Bob, emergência).
+    chamado = atendimento.chamar_proximo()
+    # Abre o prontuário do Bob.
+    p_bob = prontuarios.abrir(chamado, "Dra. Paula")
+    # Com o consultório ocupado, ninguém mais entra.
+    atendimento.chamar_proximo()
+
+    titulo("PASSO 3: diagnóstico na árvore de sistemas")
+    # Cria a árvore de sistemas para o exame do Bob.
+    arvore = criar_arvore_sistemas()
+    # A veterinária marca os itens alterados.
+    arvore.marcar_alterado("Patas traseiras")
+    arvore.marcar_alterado("PL01")
+    # Mostra a árvore com os itens alterados.
+    arvore.exibir()
+    # Copia os achados para o prontuário.
+    p_bob.registrar_achados(arvore)
+
+    titulo("PASSO 4: medicamentos e procedimentos no prontuário")
+    # Entram procedimentos e medicamentos ao longo do atendimento.
+    p_bob.adicionar_procedimento("Consulta de emergência", 250.00)
+    p_bob.adicionar_procedimento("Raio-X", 180.00)
+    p_bob.adicionar_medicamento("AMX", "Amoxicilina 250 mg", 35)
+    p_bob.adicionar_medicamento("SER", "Seringa com agulha", 3)
+    p_bob.adicionar_procedimento("Curativo", 60.00)
+    p_bob.adicionar_medicamento("ATD", "Atadura", 4)
+    p_bob.adicionar_procedimento("Internação de 1 dia", 300.00)
+    # O tutor não autoriza a internação: desfaz a última inclusão (pilha).
+    p_bob.desfazer_ultima_inclusao()
+
+    titulo("PASSO 5: alta, fechamento do prontuário e pagamento")
+    # Bob recebe alta.
+    p_bob.dar_alta()
+    # Fechamento: baixa no estoque pelo lote mais antigo e pagamento no cartão em 2x.
+    caixa.fechar_e_pagar(p_bob.numero, "Daniel", "cartão", 2, hoje)
+    # Mostra o prontuário fechado.
+    p_bob.exibir()
+    # O consultório é liberado e o sistema chama o próximo automaticamente (Rex).
+    proximo = atendimento.liberar_consultorio("Bob")
+
+    titulo("ATENDIMENTO SEGUINTE: Rex, vindo da fila normal")
+    # Abre o prontuário do Rex, que foi chamado automaticamente.
+    p_rex = prontuarios.abrir(proximo, "Dr. João")
+    p_rex.adicionar_procedimento("Consulta", 150.00)
+    p_rex.adicionar_medicamento("AMX", "Amoxicilina 250 mg", 10)
+    p_rex.dar_alta()
+    # Ana paga via PIX.
+    caixa.fechar_e_pagar(p_rex.numero, "Ana", "PIX", data_referencia=hoje)
+    # Libera o consultório: entra a Mia.
+    proximo = atendimento.liberar_consultorio("Rex")
+    # Atendimento da Mia: vacina.
+    p_mia = prontuarios.abrir(proximo, "Dr. João")
+    p_mia.adicionar_procedimento("Aplicação de vacina", 40.00)
+    p_mia.adicionar_medicamento("VAR", "Vacina antirrábica", 1)
+    p_mia.adicionar_medicamento("SER", "Seringa com agulha", 1)
+    p_mia.dar_alta()
+    # Carlos paga em dinheiro.
+    caixa.fechar_e_pagar(p_mia.numero, "Carlos", "dinheiro", data_referencia=hoje)
+    # Libera o último consultório: não há mais ninguém na espera.
+    atendimento.liberar_consultorio("Mia")
+
+    titulo("FECHAMENTO DO DIA: estoque, perdas, consumo e caixa")
+    # Mostra o estoque depois das baixas.
+    estoque.exibir()
+    # Mostra as perdas por vencimento, com o destino de descarte.
+    print("Perdas registradas:")
+    estoque.perdas.exibir()
+    # Mostra o que cada animal consumiu.
+    caixa.consumo_por_animal("Daniel", "Bob")
+    caixa.consumo_por_animal("Ana", "Rex")
+    caixa.consumo_por_animal("Carlos", "Mia")
+    # Mostra o total recebido no dia.
+    print(f"Total recebido no caixa: R$ {caixa.total_recebido():.2f}")
