@@ -4,7 +4,7 @@
 from estruturas import No, ListaEncadeada, Fila, Pilha
 # Traz as classes e funções da clínica do arquivo clinica.py.
 from clinica import ControleAtendimento, CadastroTutores, criar_arvore_sistemas, Estoque
-from clinica import Atendimento, ControleProntuarios
+from clinica import Atendimento, ControleProntuarios, Caixa
 # Traz o tipo de data do Python, para montar as datas dos lotes.
 from datetime import date
 
@@ -287,6 +287,54 @@ def teste_modulo_8():
     prontuario.exibir()
 
 
+# Função que testa os Módulos 9 e 10 (pagamento, baixa no estoque e consumo).
+def teste_modulos_9_e_10():
+    # Mostra o título do teste.
+    print("Teste dos Módulos 9 e 10: pagamento, baixa no estoque e consumo")
+    # Fixa a data de hoje do teste.
+    hoje = date(2026, 11, 24)
+    # Monta um estoque pequeno.
+    estoque = Estoque()
+    estoque.cadastrar_produto("AMX", "Amoxicilina 250 mg", 20,
+                              "resíduo químico (grupo B), recolhido por empresa licenciada")
+    estoque.cadastrar_produto("SER", "Seringa com agulha", 50,
+                              "perfurocortante (grupo E), caixa rígida própria")
+    estoque.entrada_lote("AMX", "VetFarma", 1.60, 3.20, date(2026, 8, 1), date(2027, 8, 1), 30)
+    estoque.entrada_lote("AMX", "PetMed", 1.40, 3.00, date(2026, 10, 1), date(2027, 10, 1), 20)
+    estoque.entrada_lote("SER", "MedSul", 0.50, 1.50, date(2026, 10, 15), date(2029, 10, 15), 100)
+    # Cria o controle de prontuários e o caixa, que trabalha com os dois.
+    controle = ControleProntuarios()
+    caixa = Caixa(estoque, controle)
+    # Abre o prontuário do Rex e inclui medicamentos e procedimento.
+    p1 = controle.abrir(Atendimento("Rex", "Ana", "vômito"), "Dra. Paula")
+    p1.adicionar_medicamento("AMX", "Amoxicilina 250 mg", 10)
+    p1.adicionar_medicamento("SER", "Seringa com agulha", 2)
+    p1.adicionar_procedimento("Consulta", 150.00)
+    # Tenta pagar antes da alta: deve ser recusado.
+    caixa.fechar_e_pagar(p1.numero, "Ana", "cartão", 3, hoje)
+    # O Rex recebe alta e Ana paga no cartão em 3 vezes.
+    p1.dar_alta()
+    caixa.fechar_e_pagar(p1.numero, "Ana", "cartão", 3, hoje)
+    # Abre o prontuário da Mia, pedindo mais amoxicilina do que existe.
+    p2 = controle.abrir(Atendimento("Mia", "Carlos", "falta de apetite"), "Dr. João")
+    p2.adicionar_medicamento("SER", "Seringa com agulha", 1)
+    p2.adicionar_medicamento("AMX", "Amoxicilina 250 mg", 100)
+    p2.dar_alta()
+    # O fechamento é recusado e NADA é baixado, nem a seringa.
+    caixa.fechar_e_pagar(p2.numero, "Carlos", "PIX", data_referencia=hoje)
+    # O tutor não autoriza a amoxicilina extra; ela sai e o fechamento é feito via PIX.
+    p2.remover_medicamento("AMX")
+    p2.adicionar_procedimento("Consulta", 150.00)
+    caixa.fechar_e_pagar(p2.numero, "Carlos", "PIX", data_referencia=hoje)
+    # Mostra o estoque depois das baixas.
+    estoque.exibir()
+    # Mostra o consumo de cada animal.
+    caixa.consumo_por_animal("Ana", "Rex")
+    caixa.consumo_por_animal("Carlos", "Mia")
+    # Mostra o total recebido no caixa.
+    print(f"Total recebido no caixa: R$ {caixa.total_recebido():.2f}")
+
+
 # Roda o teste do Módulo 1.
 teste_modulo_1()
 # Roda o teste do Módulo 2.
@@ -305,3 +353,5 @@ teste_modulo_6()
 teste_modulo_7()
 # Roda o teste do Módulo 8.
 teste_modulo_8()
+# Roda o teste dos Módulos 9 e 10.
+teste_modulos_9_e_10()

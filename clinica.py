@@ -1110,3 +1110,199 @@ class ControleProntuarios:
         print(f"Prontuário {numero} fechado.")
         # Devolve True.
         return True
+
+
+# ==================== MÓDULO 9: PAGAMENTO ====================
+
+# Cria a classe Pagamento: os dados de um pagamento feito no fechamento do prontuário.
+class Pagamento:
+    # Construtor: recebe todos os dados do pagamento.
+    def __init__(self, pagador, numero_prontuario, forma, parcelas,
+                 valor_medicamentos, valor_procedimentos):
+        # Guarda o nome de quem pagou.
+        self.pagador = pagador
+        # Guarda o número do prontuário pago.
+        self.numero_prontuario = numero_prontuario
+        # Guarda a forma de pagamento: PIX, cartão ou dinheiro.
+        self.forma = forma
+        # Guarda o número de parcelas (1 quando é à vista).
+        self.parcelas = parcelas
+        # Guarda o valor dos medicamentos.
+        self.valor_medicamentos = valor_medicamentos
+        # Guarda o valor dos procedimentos.
+        self.valor_procedimentos = valor_procedimentos
+        # Calcula o valor total pago.
+        self.valor_total = valor_medicamentos + valor_procedimentos
+        # Registra a data e a hora do pagamento.
+        self.data_hora = datetime.now()
+
+    # Define como o pagamento aparece quando é mostrado com print.
+    def __str__(self):
+        # Monta o texto da forma de pagamento, com parcelas quando for cartão.
+        if self.forma == "cartão" and self.parcelas > 1:
+            forma = f"cartão em {self.parcelas}x de R$ {self.valor_total / self.parcelas:.2f}"
+        elif self.forma == "cartão":
+            forma = "cartão à vista"
+        else:
+            forma = self.forma
+        # Monta a frase com os dados do pagamento.
+        return (f"Prontuário {self.numero_prontuario} - pago por {self.pagador} - {forma} - "
+                f"medicamentos R$ {self.valor_medicamentos:.2f} + procedimentos "
+                f"R$ {self.valor_procedimentos:.2f} = total R$ {self.valor_total:.2f} - "
+                f"{self.data_hora.strftime('%d/%m/%Y %H:%M')}")
+
+
+# ==================== MÓDULO 10: CAIXA E CONTROLE DO CONSUMO ====================
+
+# Cria a classe RegistroConsumo: o que cada tutor e animal consumiu do estoque.
+class RegistroConsumo:
+    # Construtor: recebe os dados de um medicamento consumido.
+    def __init__(self, numero_prontuario, nome_tutor, nome_animal, codigo, nome_produto, quantidade, valor):
+        # Guarda o número do prontuário.
+        self.numero_prontuario = numero_prontuario
+        # Guarda o nome do tutor.
+        self.nome_tutor = nome_tutor
+        # Guarda o nome do animal.
+        self.nome_animal = nome_animal
+        # Guarda o código do produto.
+        self.codigo = codigo
+        # Guarda o nome do produto.
+        self.nome_produto = nome_produto
+        # Guarda a quantidade consumida.
+        self.quantidade = quantidade
+        # Guarda o valor cobrado por essa quantidade.
+        self.valor = valor
+
+    # Define como o registro aparece quando é mostrado com print.
+    def __str__(self):
+        # Monta a frase com os dados do consumo.
+        return (f"Prontuário {self.numero_prontuario} - {self.nome_animal} (tutor: {self.nome_tutor}) - "
+                f"{self.quantidade} un. de {self.nome_produto} - R$ {self.valor:.2f}")
+
+
+# Cria a classe Caixa: fecha o prontuário, baixa o estoque e registra pagamento e consumo.
+class Caixa:
+    # Construtor: recebe o estoque e o controle de prontuários com que vai trabalhar.
+    def __init__(self, estoque, controle_prontuarios):
+        # Guarda o estoque da clínica.
+        self.estoque = estoque
+        # Guarda o controle de prontuários.
+        self.controle = controle_prontuarios
+        # Lista dos pagamentos recebidos.
+        self.pagamentos = ListaEncadeada()
+        # Lista do que foi consumido, por tutor e animal.
+        self.consumos = ListaEncadeada()
+
+    # Método que confere se há estoque para TODOS os medicamentos antes de baixar qualquer um.
+    def estoque_suficiente(self, prontuario):
+        # Começa pelo primeiro medicamento do prontuário.
+        atual = prontuario.medicamentos.cabeca
+        # Percorre a lista de medicamentos.
+        while atual is not None:
+            # Pega o item.
+            item = atual.dado
+            # Procura o produto na lista de produtos do estoque.
+            produto = self.estoque.buscar_produto(item.codigo)
+            # Se o produto não existe ou não tem quantidade suficiente...
+            if produto is None or produto.quantidade_total() < item.quantidade:
+                # ...avisa qual item falta.
+                print(f"Estoque insuficiente para {item.nome}.")
+                # Devolve False: nada será baixado.
+                return False
+            # Avança para o próximo medicamento.
+            atual = atual.proximo
+        # Se todos têm estoque, devolve True.
+        return True
+
+    # Método principal: fecha o prontuário, dá baixa no estoque e registra o pagamento.
+    def fechar_e_pagar(self, numero, pagador, forma, parcelas=1, data_referencia=None):
+        # Procura o prontuário entre os abertos.
+        prontuario = self.controle.buscar_aberto(numero)
+        # Se não encontrou...
+        if prontuario is None:
+            print(f"Prontuário {numero} não está aberto.")
+            return None
+        # Regra do enunciado: só fecha depois da alta.
+        if not prontuario.alta:
+            print(f"Prontuário {numero}: {prontuario.nome_animal} ainda não recebeu alta. Pagamento não realizado.")
+            return None
+        # Confere se a forma de pagamento é válida.
+        if forma not in ("PIX", "cartão", "dinheiro"):
+            print(f"Forma de pagamento inválida: {forma}.")
+            return None
+        # Parcelas só existem no cartão; nas outras formas é sempre 1.
+        if forma != "cartão":
+            parcelas = 1
+        # Descarta os lotes vencidos antes de conferir o estoque.
+        self.estoque.descartar_vencidos(data_referencia)
+        # Confere TODO o estoque antes de baixar qualquer item.
+        if not self.estoque_suficiente(prontuario):
+            print(f"Prontuário {numero} não foi fechado. Reponha o estoque e tente novamente.")
+            return None
+        # Começa o valor dos medicamentos em zero.
+        valor_medicamentos = 0
+        # Começa pelo primeiro medicamento do prontuário.
+        atual = prontuario.medicamentos.cabeca
+        # Percorre a lista de medicamentos.
+        while atual is not None:
+            # Pega o item.
+            item = atual.dado
+            # Baixa do estoque pelo lote mais antigo e recebe o valor de venda.
+            valor = self.estoque.retirar(item.codigo, item.quantidade, data_referencia)
+            # Soma ao valor dos medicamentos.
+            valor_medicamentos += valor
+            # Registra quem consumiu o quê.
+            registro = RegistroConsumo(numero, prontuario.nome_tutor, prontuario.nome_animal,
+                                       item.codigo, item.nome, item.quantidade, valor)
+            self.consumos.inserir_fim(registro)
+            # Avança para o próximo medicamento.
+            atual = atual.proximo
+        # Soma o valor dos procedimentos.
+        valor_procedimentos = prontuario.valor_procedimentos()
+        # Cria o pagamento.
+        pagamento = Pagamento(pagador, numero, forma, parcelas, valor_medicamentos, valor_procedimentos)
+        # Guarda o pagamento na lista de pagamentos.
+        self.pagamentos.inserir_fim(pagamento)
+        # Fecha o prontuário.
+        self.controle.fechar(numero)
+        # Mostra o recibo na tela.
+        print(f"PAGAMENTO: {pagamento}")
+        # Devolve o pagamento.
+        return pagamento
+
+    # Método que mostra tudo o que um animal de um tutor já consumiu.
+    def consumo_por_animal(self, nome_tutor, nome_animal):
+        # Mostra o título.
+        print(f"Consumo de {nome_animal} (tutor: {nome_tutor}):")
+        # Começa a soma em zero.
+        total = 0
+        # Começa pelo primeiro registro.
+        atual = self.consumos.cabeca
+        # Percorre a lista de consumos.
+        while atual is not None:
+            # Pega o registro.
+            registro = atual.dado
+            # Se for do tutor e do animal pedidos...
+            if registro.nome_tutor == nome_tutor and registro.nome_animal == nome_animal:
+                # ...mostra o registro e soma o valor.
+                print("   -", registro)
+                total += registro.valor
+            # Avança.
+            atual = atual.proximo
+        # Mostra o total consumido.
+        print(f"   Total em medicamentos: R$ {total:.2f}")
+
+    # Método que soma tudo o que foi recebido no caixa.
+    def total_recebido(self):
+        # Começa a soma em zero.
+        total = 0
+        # Começa pelo primeiro pagamento.
+        atual = self.pagamentos.cabeca
+        # Percorre a lista de pagamentos.
+        while atual is not None:
+            # Soma o valor total do pagamento.
+            total += atual.dado.valor_total
+            # Avança.
+            atual = atual.proximo
+        # Devolve a soma.
+        return total
