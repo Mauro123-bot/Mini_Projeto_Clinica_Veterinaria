@@ -1,8 +1,8 @@
 # Este arquivo guarda as regras da Clínica Veterinária.
 # Ele usa as estruturas genéricas do arquivo estruturas.py, mas não as modifica.
 
-# Traz a lista encadeada, a fila e o nó de árvore criados no estruturas.py.
-from estruturas import ListaEncadeada, Fila, NoArvore
+# Traz a lista encadeada, a fila, o nó de árvore e a pilha criados no estruturas.py.
+from estruturas import ListaEncadeada, Fila, NoArvore, Pilha
 # Traz a biblioteca de datas do Python, usada só para registrar datas e horas.
 from datetime import datetime, date, timedelta
 
@@ -805,3 +805,308 @@ class Estoque:
                 atual_lote = atual_lote.proximo
             # Avança para o próximo produto.
             atual_produto = atual_produto.proximo
+
+
+# ==================== MÓDULO 8: PRONTUÁRIO DE ATENDIMENTO ====================
+
+# Cria a classe ItemMedicamento: um medicamento ou vacina aplicado no atendimento.
+class ItemMedicamento:
+    # Construtor: recebe o código do produto no estoque, o nome e a quantidade.
+    def __init__(self, codigo, nome, quantidade):
+        # Guarda o código, o mesmo usado no estoque.
+        self.codigo = codigo
+        # Guarda o nome do medicamento.
+        self.nome = nome
+        # Guarda a quantidade aplicada.
+        self.quantidade = quantidade
+
+    # Define como o medicamento aparece quando é mostrado com print.
+    def __str__(self):
+        # Monta a frase com nome, código e quantidade.
+        return f"Medicamento: {self.nome} ({self.codigo}) - {self.quantidade} un."
+
+
+# Cria a classe Procedimento: um serviço feito no atendimento (consulta, exame etc.).
+class Procedimento:
+    # Construtor: recebe a descrição e o valor.
+    def __init__(self, descricao, valor):
+        # Guarda a descrição do procedimento.
+        self.descricao = descricao
+        # Guarda o valor cobrado.
+        self.valor = valor
+
+    # Define como o procedimento aparece quando é mostrado com print.
+    def __str__(self):
+        # Monta a frase com descrição e valor.
+        return f"Procedimento: {self.descricao} - R$ {self.valor:.2f}"
+
+
+# Cria a classe Prontuario: o registro de um atendimento.
+class Prontuario:
+    # Construtor: recebe o número, os dados do atendimento e o veterinário.
+    def __init__(self, numero, nome_animal, nome_tutor, veterinario):
+        # Guarda o número do prontuário.
+        self.numero = numero
+        # Guarda o nome do animal.
+        self.nome_animal = nome_animal
+        # Guarda o nome do tutor.
+        self.nome_tutor = nome_tutor
+        # Guarda o veterinário responsável.
+        self.veterinario = veterinario
+        # Registra a data e a hora de abertura.
+        self.abertura = datetime.now()
+        # Lista dos itens alterados encontrados no diagnóstico.
+        self.achados = ListaEncadeada()
+        # Lista dos medicamentos aplicados; cresce ao longo do atendimento.
+        self.medicamentos = ListaEncadeada()
+        # Lista dos procedimentos realizados; cresce ao longo do atendimento.
+        self.procedimentos = ListaEncadeada()
+        # Pilha das inclusões, para desfazer a última quando o tutor não autoriza.
+        self.historico = Pilha()
+        # O animal começa sem alta.
+        self.alta = False
+        # O prontuário começa aberto.
+        self.fechado = False
+
+    # Método que copia para o prontuário os itens alterados do diagnóstico.
+    def registrar_achados(self, arvore):
+        # Pega a lista de itens alterados da árvore de sistemas.
+        alterados = arvore.itens_alterados()
+        # Começa pelo primeiro item alterado.
+        atual = alterados.cabeca
+        # Percorre a lista de alterados.
+        while atual is not None:
+            # Copia o item para a lista de achados do prontuário.
+            self.achados.inserir_fim(atual.dado)
+            # Avança para o próximo item.
+            atual = atual.proximo
+
+    # Método auxiliar que impede mudanças num prontuário já fechado.
+    def _pode_alterar(self):
+        # Se o prontuário estiver fechado...
+        if self.fechado:
+            # ...avisa que não pode mais ser alterado.
+            print(f"Prontuário {self.numero} já está fechado e não pode ser alterado.")
+            # Devolve False.
+            return False
+        # Se estiver aberto, pode alterar.
+        return True
+
+    # Método que adiciona um medicamento ao prontuário.
+    def adicionar_medicamento(self, codigo, nome, quantidade):
+        # Só continua se o prontuário estiver aberto.
+        if not self._pode_alterar():
+            return None
+        # Cria o item de medicamento.
+        item = ItemMedicamento(codigo, nome, quantidade)
+        # Insere o item no fim da lista de medicamentos.
+        self.medicamentos.inserir_fim(item)
+        # Empilha o item no histórico, para poder desfazer.
+        self.historico.empilhar(item)
+        # Mostra na tela a inclusão.
+        print(f"Prontuário {self.numero}: incluído {item}")
+        # Devolve o item.
+        return item
+
+    # Método que adiciona um procedimento ao prontuário.
+    def adicionar_procedimento(self, descricao, valor):
+        # Só continua se o prontuário estiver aberto.
+        if not self._pode_alterar():
+            return None
+        # Cria o procedimento.
+        item = Procedimento(descricao, valor)
+        # Insere o procedimento no fim da lista de procedimentos.
+        self.procedimentos.inserir_fim(item)
+        # Empilha o procedimento no histórico, para poder desfazer.
+        self.historico.empilhar(item)
+        # Mostra na tela a inclusão.
+        print(f"Prontuário {self.numero}: incluído {item}")
+        # Devolve o procedimento.
+        return item
+
+    # Método que remove um medicamento pelo código, em qualquer posição da lista.
+    def remover_medicamento(self, codigo):
+        # Só continua se o prontuário estiver aberto.
+        if not self._pode_alterar():
+            return False
+        # Começa pelo primeiro medicamento.
+        atual = self.medicamentos.cabeca
+        # Percorre a lista de medicamentos.
+        while atual is not None:
+            # Verifica se este é o medicamento procurado.
+            if atual.dado.codigo == codigo:
+                # Remove o medicamento da lista.
+                self.medicamentos.remover(atual.dado)
+                # Mostra na tela a remoção.
+                print(f"Prontuário {self.numero}: removido {atual.dado}")
+                # Devolve True.
+                return True
+            # Avança para o próximo.
+            atual = atual.proximo
+        # Se não encontrou, avisa.
+        print(f"Medicamento {codigo} não está no prontuário.")
+        # Devolve False.
+        return False
+
+    # Método que remove um procedimento pela descrição, em qualquer posição da lista.
+    def remover_procedimento(self, descricao):
+        # Só continua se o prontuário estiver aberto.
+        if not self._pode_alterar():
+            return False
+        # Começa pelo primeiro procedimento.
+        atual = self.procedimentos.cabeca
+        # Percorre a lista de procedimentos.
+        while atual is not None:
+            # Verifica se este é o procedimento procurado.
+            if atual.dado.descricao == descricao:
+                # Remove o procedimento da lista.
+                self.procedimentos.remover(atual.dado)
+                # Mostra na tela a remoção.
+                print(f"Prontuário {self.numero}: removido {atual.dado} (não autorizado pelo tutor)")
+                # Devolve True.
+                return True
+            # Avança para o próximo.
+            atual = atual.proximo
+        # Se não encontrou, avisa.
+        print(f"Procedimento {descricao} não está no prontuário.")
+        # Devolve False.
+        return False
+
+    # Método que desfaz a última inclusão, usando a pilha do histórico.
+    def desfazer_ultima_inclusao(self):
+        # Só continua se o prontuário estiver aberto.
+        if not self._pode_alterar():
+            return None
+        # Repete até achar uma inclusão que ainda esteja no prontuário.
+        while not self.historico.esta_vazia():
+            # Tira do topo da pilha o último item incluído.
+            item = self.historico.desempilhar()
+            # Se o item é um medicamento, tenta removê-lo da lista de medicamentos.
+            if isinstance(item, ItemMedicamento):
+                removido = self.medicamentos.remover(item)
+            # Se é um procedimento, tenta removê-lo da lista de procedimentos.
+            else:
+                removido = self.procedimentos.remover(item)
+            # Se o item ainda estava no prontuário, a remoção deu certo.
+            if removido:
+                # Mostra na tela o que foi desfeito.
+                print(f"Prontuário {self.numero}: desfeita a última inclusão -> {item}")
+                # Devolve o item desfeito.
+                return item
+            # Se o item já tinha sido removido antes, a pilha segue para o próximo.
+        # Se a pilha esvaziou, não há o que desfazer.
+        print("Não há inclusões para desfazer.")
+        # Devolve None.
+        return None
+
+    # Método que registra a alta do animal.
+    def dar_alta(self):
+        # Marca que o animal recebeu alta.
+        self.alta = True
+        # Mostra na tela.
+        print(f"Prontuário {self.numero}: {self.nome_animal} recebeu alta.")
+
+    # Método que soma o valor dos procedimentos.
+    def valor_procedimentos(self):
+        # Começa a soma em zero.
+        total = 0
+        # Começa pelo primeiro procedimento.
+        atual = self.procedimentos.cabeca
+        # Percorre a lista.
+        while atual is not None:
+            # Soma o valor.
+            total += atual.dado.valor
+            # Avança.
+            atual = atual.proximo
+        # Devolve a soma.
+        return total
+
+    # Método que mostra o prontuário completo.
+    def exibir(self):
+        # Mostra o cabeçalho.
+        print(f"Prontuário {self.numero} - {self.nome_animal} (tutor: {self.nome_tutor}) - "
+              f"veterinário(a): {self.veterinario} - aberto em {self.abertura.strftime('%d/%m/%Y %H:%M')}")
+        # Mostra os achados do diagnóstico.
+        print("  Achados do diagnóstico:")
+        atual = self.achados.cabeca
+        while atual is not None:
+            print("   -", atual.dado)
+            atual = atual.proximo
+        # Mostra os medicamentos.
+        print("  Medicamentos e procedimentos:")
+        atual = self.medicamentos.cabeca
+        while atual is not None:
+            print("   -", atual.dado)
+            atual = atual.proximo
+        # Mostra os procedimentos.
+        atual = self.procedimentos.cabeca
+        while atual is not None:
+            print("   -", atual.dado)
+            atual = atual.proximo
+        # Mostra a situação.
+        situacao = "fechado" if self.fechado else ("com alta" if self.alta else "em atendimento")
+        print(f"  Situação: {situacao}")
+
+
+# Cria a classe ControleProntuarios: os prontuários abertos e fechados da clínica.
+class ControleProntuarios:
+    # Construtor: cria o controle vazio.
+    def __init__(self):
+        # Lista dos prontuários abertos.
+        self.abertos = ListaEncadeada()
+        # Lista dos prontuários fechados.
+        self.fechados = ListaEncadeada()
+        # Próximo número de prontuário a ser usado.
+        self.proximo_numero = 1
+
+    # Método que abre um prontuário para um atendimento chamado ao consultório.
+    def abrir(self, atendimento, veterinario):
+        # Cria o prontuário com o próximo número.
+        prontuario = Prontuario(self.proximo_numero, atendimento.nome_animal,
+                                atendimento.nome_tutor, veterinario)
+        # Aumenta o número para o próximo prontuário.
+        self.proximo_numero += 1
+        # Coloca o prontuário na lista de abertos.
+        self.abertos.inserir_fim(prontuario)
+        # Mostra na tela.
+        print(f"Prontuário {prontuario.numero} aberto para {prontuario.nome_animal}.")
+        # Devolve o prontuário.
+        return prontuario
+
+    # Método que procura um prontuário aberto pelo número.
+    def buscar_aberto(self, numero):
+        # Começa pelo primeiro prontuário aberto.
+        atual = self.abertos.cabeca
+        # Percorre a lista de abertos.
+        while atual is not None:
+            # Verifica se é o número procurado.
+            if atual.dado.numero == numero:
+                # Devolve o prontuário.
+                return atual.dado
+            # Avança.
+            atual = atual.proximo
+        # Se não encontrou, devolve None.
+        return None
+
+    # Método que fecha um prontuário; só funciona depois da alta.
+    def fechar(self, numero):
+        # Procura o prontuário entre os abertos.
+        prontuario = self.buscar_aberto(numero)
+        # Se não encontrou...
+        if prontuario is None:
+            print(f"Prontuário {numero} não está aberto.")
+            return False
+        # Regra do enunciado: só fecha depois da alta.
+        if not prontuario.alta:
+            print(f"Prontuário {numero} não pode ser fechado: {prontuario.nome_animal} ainda não recebeu alta.")
+            return False
+        # Marca o prontuário como fechado.
+        prontuario.fechado = True
+        # Tira da lista de abertos.
+        self.abertos.remover(prontuario)
+        # Coloca na lista de fechados.
+        self.fechados.inserir_fim(prontuario)
+        # Mostra na tela.
+        print(f"Prontuário {numero} fechado.")
+        # Devolve True.
+        return True

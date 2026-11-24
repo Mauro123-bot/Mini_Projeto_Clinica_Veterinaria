@@ -208,3 +208,54 @@ class NoArvore:
             atual.proximo_irmao = novo
         # Devolve o novo nó, para que ele também possa receber filhos.
         return novo
+
+
+# ==================== MÓDULO 8: PILHA ====================
+
+# Cria a classe Pilha: o último a entrar é o primeiro a sair (LIFO).
+class Pilha:
+    # Construtor: cria uma pilha nova, ainda vazia.
+    def __init__(self):
+        # Ponteiro para o item do topo da pilha; vazio no início.
+        self.topo = None
+        # Contador de quantos itens estão na pilha.
+        self.tamanho = 0
+
+    # Método que responde se a pilha está vazia.
+    def esta_vazia(self):
+        # Devolve True se não houver ninguém no topo.
+        return self.topo is None
+
+    # Método que coloca um novo item no topo da pilha. Custo O(1).
+    def empilhar(self, dado):
+        # Cria um nó novo contendo o dado recebido.
+        novo = No(dado)
+        # O novo nó aponta para o antigo topo.
+        novo.proximo = self.topo
+        # O novo nó passa a ser o topo.
+        self.topo = novo
+        # Aumenta em 1 o contador.
+        self.tamanho += 1
+
+    # Método que tira e devolve o item do topo da pilha. Custo O(1).
+    def desempilhar(self):
+        # Se a pilha estiver vazia, não há o que tirar.
+        if self.esta_vazia():
+            # Devolve None para indicar que estava vazia.
+            return None
+        # Guarda o nó do topo.
+        removido = self.topo
+        # O topo passa a ser o nó de baixo.
+        self.topo = removido.proximo
+        # Diminui em 1 o contador.
+        self.tamanho -= 1
+        # Devolve o dado de quem saiu.
+        return removido.dado
+
+    # Método que mostra o item do topo, sem tirá-lo. Custo O(1).
+    def espiar(self):
+        # Se a pilha estiver vazia, devolve None.
+        if self.esta_vazia():
+            return None
+        # Devolve o dado do topo.
+        return self.topo.dado

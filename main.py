@@ -1,9 +1,10 @@
 # Este arquivo roda os testes de cada módulo do projeto.
 
-# Traz as classes No, ListaEncadeada e Fila do arquivo estruturas.py.
-from estruturas import No, ListaEncadeada, Fila
+# Traz as estruturas genéricas do arquivo estruturas.py.
+from estruturas import No, ListaEncadeada, Fila, Pilha
 # Traz as classes e funções da clínica do arquivo clinica.py.
 from clinica import ControleAtendimento, CadastroTutores, criar_arvore_sistemas, Estoque
+from clinica import Atendimento, ControleProntuarios
 # Traz o tipo de data do Python, para montar as datas dos lotes.
 from datetime import date
 
@@ -234,6 +235,58 @@ def teste_modulo_7():
     estoque.perdas.exibir()
 
 
+# Função que testa o Módulo 8 (pilha e prontuário).
+def teste_modulo_8():
+    # Mostra o título do teste da pilha.
+    print("Teste do Módulo 8: pilha")
+    # Cria uma pilha vazia.
+    pilha = Pilha()
+    # Empilha três itens.
+    pilha.empilhar("consulta")
+    pilha.empilhar("exame")
+    pilha.empilhar("curativo")
+    # O topo é o último que entrou (curativo).
+    print("Topo:", pilha.espiar())
+    # Desempilha: sai primeiro o curativo, depois o exame (LIFO).
+    print("Saiu:", pilha.desempilhar())
+    print("Saiu:", pilha.desempilhar())
+    # Mostra o tamanho restante (1).
+    print("Tamanho:", pilha.tamanho)
+
+    # Mostra o título do teste do prontuário.
+    print("Teste do Módulo 8: prontuário")
+    # Cria o controle de prontuários.
+    controle = ControleProntuarios()
+    # Simula o animal que foi chamado ao consultório.
+    atendimento = Atendimento("Rex", "Ana", "vômito")
+    # Abre o prontuário com a veterinária responsável.
+    prontuario = controle.abrir(atendimento, "Dra. Paula")
+    # Faz o diagnóstico na árvore e copia os achados para o prontuário.
+    arvore = criar_arvore_sistemas()
+    arvore.marcar_alterado("Estômago")
+    prontuario.registrar_achados(arvore)
+    # Ao longo do atendimento, entram medicamentos e procedimentos.
+    prontuario.adicionar_procedimento("Consulta", 150.00)
+    prontuario.adicionar_medicamento("AMX", "Amoxicilina 250 mg", 10)
+    prontuario.adicionar_procedimento("Exame de sangue", 120.00)
+    prontuario.adicionar_medicamento("SER", "Seringa com agulha", 2)
+    prontuario.adicionar_procedimento("Ultrassom", 200.00)
+    # O tutor não autoriza o exame de sangue: removido do meio da lista.
+    prontuario.remover_procedimento("Exame de sangue")
+    # A última inclusão (ultrassom) é desfeita com a pilha.
+    prontuario.desfazer_ultima_inclusao()
+    # Tenta fechar antes da alta: deve ser recusado.
+    controle.fechar(prontuario.numero)
+    # O animal recebe alta.
+    prontuario.dar_alta()
+    # Agora o prontuário pode ser fechado.
+    controle.fechar(prontuario.numero)
+    # Depois de fechado, não aceita mais inclusões.
+    prontuario.adicionar_procedimento("Banho", 60.00)
+    # Mostra o prontuário final.
+    prontuario.exibir()
+
+
 # Roda o teste do Módulo 1.
 teste_modulo_1()
 # Roda o teste do Módulo 2.
@@ -250,3 +303,5 @@ teste_modulo_5()
 teste_modulo_6()
 # Roda o teste do Módulo 7.
 teste_modulo_7()
+# Roda o teste do Módulo 8.
+teste_modulo_8()
