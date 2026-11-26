@@ -1,5 +1,9 @@
 # Projeto Clínica Veterinária
 
+## Vídeo de apresentação
+
+https://youtu.be/T1GFcxsd6ZM
+
 Disciplina Estrutura de Dados, Fatec Rio Claro. Prof. Orlando.
 
 ## 1. Concepção do projeto
